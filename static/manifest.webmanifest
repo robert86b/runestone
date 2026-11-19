@@ -1,0 +1,10 @@
+{
+  "name": "Runestone",
+  "short_name": "Notes",
+  "description": "Self-hosted notes in Runestone",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#d71920"
+}

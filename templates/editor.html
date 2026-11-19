@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Runestone">
+<link rel="manifest" href="/static/manifest.webmanifest">
+
+<title>{{ title }} · Runestone</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;background:#111;color:#eee;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.app{display:flex;min-height:100vh}
+.sidebar{
+width:280px;background:#171717;border-right:1px solid #292929;
+padding:20px;position:fixed;top:0;bottom:0;overflow:auto;
+}
+.brand{
+font-size:21px;font-weight:800;margin-bottom:20px;
+text-decoration:none;color:white;display:block
+}
+.brand span{color:#d71920}
+.section{
+font-size:11px;color:#777;font-weight:800;
+letter-spacing:.09em;margin:18px 5px 8px
+}
+.navnote{
+display:block;color:#aaa;text-decoration:none;
+padding:8px 10px;border-radius:7px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.navnote:hover,.navnote.active{
+background:#252525;color:white
+}
+.main{
+margin-left:280px;width:calc(100% - 280px);
+padding:30px 45px 80px
+}
+.topbar{
+display:flex;justify-content:flex-end;gap:8px;
+max-width:850px;margin:0 auto 25px
+}
+button{
+background:#242424;color:white;border:1px solid #343434;
+padding:9px 13px;border-radius:8px;font-weight:650;cursor:pointer
+}
+button.primary{background:#d71920;border-color:#d71920}
+.document{max-width:850px;margin:auto}
+.document h1{font-size:42px;margin:18px 0}
+.document h2{font-size:28px;margin-top:30px}
+.document h3{font-size:21px;margin-top:25px}
+.document p{font-size:17px;line-height:1.7;margin:8px 0}
+.document ul{line-height:1.7;font-size:17px}
+.document blockquote{
+border-left:3px solid #555;margin:20px 0;padding:5px 18px;color:#aaa
+}
+.document code{
+background:#252525;padding:2px 6px;border-radius:5px
+}
+.wiki{color:#e15a5f;text-decoration:none}
+.wiki:hover{text-decoration:underline}
+.wiki.missing{color:#777}
+.spacer{height:8px}
+.task{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:17px}
+.box{
+width:19px;height:19px;border:2px solid #666;border-radius:5px;
+display:inline-flex;align-items:center;justify-content:center;
+font-size:13px;margin-top:2px;flex:none
+}
+.box.checked{background:#d71920;border-color:#d71920}
+textarea{
+width:100%;min-height:65vh;background:#171717;color:white;
+border:1px solid #303030;border-radius:12px;padding:20px;
+font:16px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+resize:vertical
+}
+.hidden{display:none}
+.status{color:#777;font-size:13px;margin-top:9px}
+
+.editor-toolbar{
+display:flex;
+gap:7px;
+overflow-x:auto;
+padding:4px 0 12px;
+-webkit-overflow-scrolling:touch;
+scrollbar-width:none
+}
+.editor-toolbar::-webkit-scrollbar{display:none}
+
+.editor-toolbar button{
+flex:none;
+min-width:42px;
+background:#202020;
+border:1px solid #333;
+padding:9px 11px
+}
+
+.editor-toolbar button:active{
+background:#333
+}
+
+.mode-switch{
+display:flex;
+background:#1b1b1b;
+border:1px solid #303030;
+border-radius:9px;
+padding:3px
+}
+
+.mode-switch button{
+border:0;
+background:transparent
+}
+
+.mode-switch button.primary{
+background:#d71920
+}
+
+.share-button{
+white-space:nowrap
+}
+
+.backlinks{
+border-top:1px solid #292929;margin-top:55px;padding-top:25px
+}
+.backlinks h3{color:#888;font-size:13px;letter-spacing:.08em}
+.backlink{
+display:block;color:#bbb;text-decoration:none;
+padding:7px 0
+}
+.backlink:hover{color:white}
+.mobile-back{display:none}
+.danger{margin-top:35px}
+@media(max-width:760px){
+.sidebar{display:none}
+.main{margin:0;width:100%;padding:15px 18px 90px}
+.topbar{
+position:sticky;top:0;background:rgba(17,17,17,.94);
+padding:calc(8px + env(safe-area-inset-top)) 0 10px;
+z-index:10;justify-content:space-between
+}
+.mobile-back{display:inline-block}
+.document h1{font-size:34px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+
+<a class="brand" href="/">
+<span>◆</span> Runestone
+</a>
+
+<div class="section">DOCUMENTS</div>
+
+{% for note in notes %}
+<a
+class="navnote {% if note.file == filename %}active{% endif %}"
+href="/note/{{ note.file }}">
+▤ {{ note.name }}
+</a>
+{% endfor %}
+
+</aside>
+
+<main class="main">
+
+<div class="topbar">
+
+<button class="mobile-back" onclick="location.href='/'">
+←
+</button>
+
+<div style="display:flex;gap:8px">
+
+<div class="mode-switch">
+<button
+id="viewBtn"
+class="primary"
+onclick="showView()">
+View
+</button>
+
+<button
+id="editBtn"
+onclick="showEdit()">
+Edit
+</button>
+</div>
+
+<button
+class="share-button"
+onclick="copyLink()">
+Share
+</button>
+
+</div>
+
+</div>
+
+<article class="document">
+
+<div id="viewMode">
+{{ rendered|safe }}
+</div>
+
+<div id="editMode" class="hidden">
+
+<div class="editor-toolbar">
+
+<button onclick="insertLinePrefix('# ')">
+H1
+</button>
+
+<button onclick="wrapSelection('**','**')">
+<b>B</b>
+</button>
+
+<button onclick="insertLinePrefix('- [ ] ')">
+☐
+</button>
+
+<button onclick="insertLinePrefix('- ')">
+• List
+</button>
+
+<button onclick="insertLinePrefix('> ')">
+❝
+</button>
+
+<button onclick="wrapSelection('`','`')">
+&lt;/&gt;
+</button>
+
+<button onclick="insertWikiLink()">
+[[Link]]
+</button>
+
+</div>
+
+<textarea id="editor">{{ content }}</textarea>
+
+<div id="status" class="status">
+Ready
+</div>
+
+</div>
+
+<div class="backlinks">
+
+<h3>BACKLINKS</h3>
+
+{% for back in backlinks %}
+<a class="backlink" href="/note/{{ back.file }}">
+← {{ back.name }}
+</a>
+{% else %}
+<div class="status">
+No documents link here yet.
+</div>
+{% endfor %}
+
+</div>
+
+<form
+class="danger"
+method="post"
+action="/delete/{{ filename }}"
+onsubmit="return confirm('Delete this document?')">
+
+<button>Delete document</button>
+
+</form>
+
+</article>
+
+</main>
+
+</div>
+
+<script>
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("/sw.js");
+}
+
+const filename={{ filename|tojson }};
+const editor=document.getElementById("editor");
+const status=document.getElementById("status");
+const storageKey="runestone-draft:"+filename;
+
+let timer;
+
+function showView(){
+document.getElementById("viewMode").classList.remove("hidden");
+document.getElementById("editMode").classList.add("hidden");
+document.getElementById("viewBtn").classList.add("primary");
+document.getElementById("editBtn").classList.remove("primary");
+}
+
+function showEdit(){
+document.getElementById("viewMode").classList.add("hidden");
+document.getElementById("editMode").classList.remove("hidden");
+document.getElementById("editBtn").classList.add("primary");
+document.getElementById("viewBtn").classList.remove("primary");
+editor.focus();
+}
+
+function setStatus(text){
+status.textContent=text;
+}
+
+function triggerEdit(){
+editor.dispatchEvent(
+new Event("input",{bubbles:true})
+);
+}
+
+function replaceSelection(text,newCursor=null){
+
+const start=editor.selectionStart;
+const end=editor.selectionEnd;
+
+editor.value=
+editor.value.substring(0,start)+
+text+
+editor.value.substring(end);
+
+const pos=
+newCursor === null
+? start+text.length
+: start+newCursor;
+
+editor.focus();
+editor.setSelectionRange(pos,pos);
+
+triggerEdit();
+}
+
+function wrapSelection(before,after){
+
+const start=editor.selectionStart;
+const end=editor.selectionEnd;
+
+const selected=
+editor.value.substring(start,end);
+
+const text=
+before+selected+after;
+
+editor.value=
+editor.value.substring(0,start)+
+text+
+editor.value.substring(end);
+
+editor.focus();
+
+if(selected){
+editor.setSelectionRange(
+start+before.length,
+start+before.length+selected.length
+);
+}else{
+editor.setSelectionRange(
+start+before.length,
+start+before.length
+);
+}
+
+triggerEdit();
+}
+
+function insertLinePrefix(prefix){
+
+const start=editor.selectionStart;
+
+const lineStart=
+editor.value.lastIndexOf("\n",start-1)+1;
+
+editor.value=
+editor.value.substring(0,lineStart)+
+prefix+
+editor.value.substring(lineStart);
+
+editor.focus();
+
+editor.setSelectionRange(
+start+prefix.length,
+start+prefix.length
+);
+
+triggerEdit();
+}
+
+function insertWikiLink(){
+
+const start=editor.selectionStart;
+const end=editor.selectionEnd;
+
+const selected=
+editor.value.substring(start,end);
+
+const value=
+selected
+? "[["+selected+"]]"
+: "[[]]";
+
+editor.value=
+editor.value.substring(0,start)+
+value+
+editor.value.substring(end);
+
+editor.focus();
+
+if(selected){
+editor.setSelectionRange(
+start+2,
+start+2+selected.length
+);
+}else{
+editor.setSelectionRange(
+start+2,
+start+2
+);
+}
+
+triggerEdit();
+}
+
+function saveLocal(pending=true){
+localStorage.setItem(
+storageKey,
+JSON.stringify({
+content:editor.value,
+pending:pending,
+updated:Date.now()
+})
+);
+}
+
+function loadLocal(){
+try{
+const saved=JSON.parse(localStorage.getItem(storageKey));
+if(saved && saved.pending && typeof saved.content==="string"){
+editor.value=saved.content;
+setStatus("Unsynced changes loaded");
+}
+}catch(e){}
+}
+
+async function saveNote(){
+
+saveLocal(true);
+
+if(!navigator.onLine){
+setStatus("Saved on device — waiting to sync");
+return;
+}
+
+setStatus("Saving...");
+
+try{
+const response=await fetch(
+"/save/"+filename.split("/").map(encodeURIComponent).join("/"),
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({content:editor.value})
+}
+);
+
+if(!response.ok) throw new Error();
+
+saveLocal(false);
+setStatus("Saved to Runestone");
+
+}catch(e){
+setStatus("Saved on device — waiting to sync");
+}
+}
+
+editor.addEventListener("input",()=>{
+saveLocal(true);
+setStatus("Editing...");
+clearTimeout(timer);
+timer=setTimeout(saveNote,700);
+});
+
+window.addEventListener("online",()=>{
+try{
+const saved=JSON.parse(localStorage.getItem(storageKey));
+if(saved && saved.pending){
+editor.value=saved.content;
+saveNote();
+}
+}catch(e){}
+});
+
+function copyLink(){
+navigator.clipboard.writeText(window.location.href)
+.then(()=>{
+const buttons=document.querySelectorAll(".topbar button");
+const b=buttons[buttons.length-1];
+const old=b.textContent;
+b.textContent="Copied ✓";
+setTimeout(()=>b.textContent=old,1400);
+})
+.catch(()=>{
+prompt("Copy this document link:",window.location.href);
+});
+}
+
+loadLocal();
+</script>
+
+</body>
+</html>
